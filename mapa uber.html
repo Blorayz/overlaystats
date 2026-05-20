@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Info Box</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+    body {
+      background: transparent !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+    }
+    .card {
+      background: rgba(22, 24, 28, 0.88);
+      border-radius: 40px;
+      border: 4px solid #D4A017;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+    }
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 0 20px;
+      width: 140px;
+      flex-shrink: 0;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #8A8F99;
+    }
+    .value {
+      font-size: 42px;
+      font-weight: 900;
+      color: #F0F3F8;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .value.temp { color: #3B6CFF; }
+    .value.speed { color: #2ECC71; }
+    .city-wrap { width: 130px; overflow: hidden; }
+    .value.city { font-size: 26px; letter-spacing: -0.5px; white-space: nowrap; display: inline-block; }
+    .value.city.scrolling { animation: cityScroll 9s ease-in-out infinite; }
+    @keyframes cityScroll {
+      0%   { transform: translateX(0); }
+      15%  { transform: translateX(0); }
+      60%  { transform: translateX(-100%); }
+      75%  { transform: translateX(-100%); }
+      76%  { transform: translateX(130px); }
+      100% { transform: translateX(0); }
+    }
+    .divider {
+      width: 1px;
+      height: 48px;
+      background: rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="item">
+    <span class="label">Cidade</span>
+    <div class="city-wrap"><span class="value city" id="cityVal">A localizar...</span></div>
+  </div>
+  <div class="divider"></div>
+  <div class="item">
+    <span class="label">Temp</span>
+    <span class="value temp" id="tempVal">--°</span>
+  </div>
+  <div class="divider"></div>
+  <div class="item">
+    <span class="value" id="timeVal">--:--</span>
+  </div>
+  <div class="divider"></div>
+  <div class="item">
+    <span class="label">km/h</span>
+    <span class="value speed" id="speedVal">0</span>
+  </div>
+</div>
+<script>
+  // Relógio
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('timeVal').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  let lastCity = 0;
+  let lastWeather = 0;
+
+  async function fetchCity(lat, lng) {
+    if (Date.now() - lastCity < 30000) return;
+    lastCity = Date.now();
+    try {
+      const res = await fetch(
+        'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json'
+      );
+      const d = await res.json();
+      const city = d.address?.city || d.address?.town || d.address?.village || d.address?.suburb || '--';
+      const el = document.getElementById('cityVal');
+      el.textContent = city;
+      el.classList.remove('scrolling');
+      // só anima se o texto for mais largo que o wrapper
+      setTimeout(() => {
+        if (el.scrollWidth > 130) el.classList.add('scrolling');
+      }, 50);
+    } catch(e) {}
+  }
+
+  async function fetchWeather(lat, lng) {
+    if (Date.now() - lastWeather < 300000) return;
+    lastWeather = Date.now();
+    try {
+      const res = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng +
+        '&current=temperature_2m&timezone=auto'
+      );
+      const d = await res.json();
+      const temp = Math.round(d.current?.temperature_2m ?? null);
+      document.getElementById('tempVal').textContent = isNaN(temp) ? '--°' : temp + '°';
+    } catch(e) {}
+  }
+
+  if ('geolocation' in navigator) {
+    navigator.geolocation.watchPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const speed = pos.coords.speed;
+
+        // km/h
+        const kmh = (speed != null && speed >= 0) ? Math.round(speed * 3.6) : 0;
+        document.getElementById('speedVal').textContent = kmh;
+
+        fetchCity(lat, lng);
+        fetchWeather(lat, lng);
+      },
+      (err) => {
+        document.getElementById('cityVal').textContent = 'Sem GPS';
+      },
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+    );
+  } else {
+    document.getElementById('cityVal').textContent = 'GPS indisponível';
+  }
+</script>
+</body>
+</html>
