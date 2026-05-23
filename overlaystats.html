@@ -18,26 +18,17 @@
     .card {
       background: rgba(22, 24, 28, 0.88);
       border-radius: 40px;
-      border: 4px solid #D4A017;
-      padding: 20px 32px;
+      border: 2px solid #D4A017;
+      padding: 16px 20px;
       display: flex;
       align-items: center;
+      gap: 0;
     }
     .item {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 0 20px;
-      width: 140px;
-      flex-shrink: 0;
-    }
-    .label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #8A8F99;
+      justify-content: center;
+      padding: 0 24px;
     }
     .value {
       font-size: 42px;
@@ -45,18 +36,30 @@
       color: #F0F3F8;
       letter-spacing: -1px;
       line-height: 1;
+      white-space: nowrap;
     }
-    .value.temp { color: #3B6CFF; }
+    .value.temp  { color: #3B6CFF; }
     .value.speed { color: #2ECC71; }
-    .city-wrap { width: 130px; overflow: hidden; }
-    .value.city { font-size: 26px; letter-spacing: -0.5px; white-space: nowrap; display: inline-block; }
+    .stat-icon {
+      width: 56px; height: 56px;
+      background: #0E1013;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .stat-icon img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
+    .stat-icon span { font-size: 32px; line-height: 1; }
+    .item { display: flex; align-items: center; justify-content: center; padding: 0 14px; gap: 10px; }
+    .city-wrap { width: 140px; overflow: hidden; }
+    .value.city { font-size: 32px; letter-spacing: -0.5px; display: inline-block; }
     .value.city.scrolling { animation: cityScroll 9s ease-in-out infinite; }
     @keyframes cityScroll {
       0%   { transform: translateX(0); }
       15%  { transform: translateX(0); }
       60%  { transform: translateX(-100%); }
       75%  { transform: translateX(-100%); }
-      76%  { transform: translateX(130px); }
+      76%  { transform: translateX(140px); }
       100% { transform: translateX(0); }
     }
     .divider {
@@ -66,30 +69,31 @@
       flex-shrink: 0;
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 <div class="card">
   <div class="item">
-    <span class="label">Cidade</span>
+    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5arpdstgph8e6nx10sgtte.webp" alt="PT" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
     <div class="city-wrap"><span class="value city" id="cityVal">A localizar...</span></div>
   </div>
   <div class="divider"></div>
   <div class="item">
-    <span class="label">Temp</span>
+    <div class="stat-icon"><span id="weatherIcon">☀️</span></div>
     <span class="value temp" id="tempVal">--°</span>
   </div>
   <div class="divider"></div>
   <div class="item">
+    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5bxa91235dtpmjn10zhcxa.webp" alt="clock" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
     <span class="value" id="timeVal">--:--</span>
   </div>
   <div class="divider"></div>
   <div class="item">
-    <span class="label">km/h</span>
-    <span class="value speed" id="speedVal">0</span>
+    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5bv0qze4q8qj6rfnz9p02p.webp" alt="speed" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
+    <span class="value speed" id="speedVal">0 km/h</span>
   </div>
 </div>
 <script>
-  // Relógio
   function updateClock() {
     const now = new Date();
     document.getElementById('timeVal').textContent =
@@ -113,11 +117,27 @@
       const el = document.getElementById('cityVal');
       el.textContent = city;
       el.classList.remove('scrolling');
-      // só anima se o texto for mais largo que o wrapper
       setTimeout(() => {
-        if (el.scrollWidth > 130) el.classList.add('scrolling');
+        if (el.scrollWidth > 140) el.classList.add('scrolling');
       }, 50);
     } catch(e) {}
+  }
+
+  function getWeatherEmoji(code, isDay) {
+    const c = Number(code);
+    if (c === 0) return isDay ? '☀️' : '🌙';
+    if (c === 1 || c === 2) return '⛅';
+    if (c === 3) return '☁️';
+    if (c === 45 || c === 48) return '🌫️';
+    if (c >= 51 && c <= 55) return '🌦️';
+    if (c === 56 || c === 57) return '❄️';
+    if (c >= 61 && c <= 65) return '🌧️';
+    if (c === 66 || c === 67) return '🌨️';
+    if (c >= 71 && c <= 77) return '❄️';
+    if (c >= 80 && c <= 82) return '🌦️';
+    if (c === 85 || c === 86) return '🌨️';
+    if (c >= 95 && c <= 99) return '⛈️';
+    return '☀️';
   }
 
   async function fetchWeather(lat, lng) {
@@ -126,11 +146,14 @@
     try {
       const res = await fetch(
         'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng +
-        '&current=temperature_2m&timezone=auto'
+        '&current=temperature_2m,weather_code,is_day&timezone=auto'
       );
       const d = await res.json();
-      const temp = Math.round(d.current?.temperature_2m ?? null);
+      const temp = Math.round(Number(d.current?.temperature_2m) || 0);
+      const code = Number(d.current?.weather_code) || 0;
+      const isDay = Number(d.current?.is_day) || 1;
       document.getElementById('tempVal').textContent = isNaN(temp) ? '--°' : temp + '°';
+      document.getElementById('weatherIcon').textContent = getWeatherEmoji(code, isDay);
     } catch(e) {}
   }
 
@@ -140,11 +163,8 @@
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const speed = pos.coords.speed;
-
-        // km/h
         const kmh = (speed != null && speed >= 0) ? Math.round(speed * 3.6) : 0;
-        document.getElementById('speedVal').textContent = kmh;
-
+        document.getElementById('speedVal').textContent = kmh + ' km/h';
         fetchCity(lat, lng);
         fetchWeather(lat, lng);
       },
