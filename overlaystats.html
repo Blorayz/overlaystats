@@ -47,10 +47,10 @@
       border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
-      overflow: hidden;
+      overflow: visible;
     }
     .stat-icon img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
-    .stat-icon span { font-size: 32px; line-height: 1; }
+    .stat-icon svg { width: 38px; height: 38px; }
     .city-wrap { width: 140px; overflow: hidden; }
     .value.city { font-size: 32px; letter-spacing: -0.5px; display: inline-block; }
     .value.city.scrolling { animation: cityScroll 9s ease-in-out infinite; }
@@ -63,37 +63,233 @@
       100% { transform: translateX(0); }
     }
     .divider {
-      width: 1px;
-      height: 48px;
+      width: 1px; height: 48px;
       background: rgba(255,255,255,0.08);
       flex-shrink: 0;
     }
+
+    /* Animações dos ícones */
+    @keyframes spin    { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+    @keyframes fall    { 0% { transform: translateY(0); opacity:1; } 100% { transform: translateY(6px); opacity:0; } }
+    @keyframes flicker { 0%,100% { opacity:1; transform: scaleY(1); } 50% { opacity:.6; transform: scaleY(.85); } }
+    @keyframes drift   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+    @keyframes snowfall{ 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(8px) rotate(45deg); opacity:0; } }
+
+    .anim-spin    { animation: spin    4s linear infinite; transform-origin: center; }
+    .anim-pulse   { animation: pulse   2s ease-in-out infinite; }
+    .anim-fall-1  { animation: fall    1.4s ease-in infinite; }
+    .anim-fall-2  { animation: fall    1.4s ease-in .4s infinite; }
+    .anim-fall-3  { animation: fall    1.4s ease-in .8s infinite; }
+    .anim-flicker { animation: flicker 1.5s ease-in-out infinite; transform-origin: bottom center; }
+    .anim-drift   { animation: drift   3s ease-in-out infinite; }
+    .anim-snow-1  { animation: snowfall 1.8s ease-in infinite; }
+    .anim-snow-2  { animation: snowfall 1.8s ease-in .5s infinite; }
+    .anim-snow-3  { animation: snowfall 1.8s ease-in 1s infinite; }
   </style>
-<base target="_blank">
 </head>
 <body>
 <div class="card">
+
+  <!-- CIDADE -->
   <div class="item">
-    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5arpdstgph8e6nx10sgtte.webp" alt="PT" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
+    <div class="stat-icon">
+      <img src="https://cdn.streamelements.com/uploads/01ks5arpdstgph8e6nx10sgtte.webp" alt="PT">
+    </div>
     <div class="city-wrap"><span class="value city" id="cityVal">A localizar...</span></div>
   </div>
+
   <div class="divider"></div>
+
+  <!-- TEMPO -->
   <div class="item">
-    <div class="stat-icon"><span id="weatherIcon">☀️</span></div>
+    <div class="stat-icon" id="weatherIconContainer">
+      <!-- placeholder: sol -->
+      <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="19" cy="19" r="7" fill="#FFD84D" class="anim-spin"/>
+        <g stroke="#FFD84D" stroke-width="2.2" stroke-linecap="round" class="anim-spin">
+          <line x1="19" y1="3"  x2="19" y2="7"/>
+          <line x1="19" y1="31" x2="19" y2="35"/>
+          <line x1="3"  y1="19" x2="7"  y2="19"/>
+          <line x1="31" y1="19" x2="35" y2="19"/>
+          <line x1="7.5"  y1="7.5"  x2="10.5" y2="10.5"/>
+          <line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/>
+          <line x1="30.5" y1="7.5"  x2="27.5" y2="10.5"/>
+          <line x1="10.5" y1="27.5" x2="7.5"  y2="30.5"/>
+        </g>
+      </svg>
+    </div>
     <span class="value temp" id="tempVal">--°</span>
   </div>
+
   <div class="divider"></div>
+
+  <!-- HORA -->
   <div class="item">
-    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5bxa91235dtpmjn10zhcxa.webp" alt="clock" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
+    <div class="stat-icon">
+      <img src="https://cdn.streamelements.com/uploads/01ktaew1w1xb6fg708e06efwza.webp" alt="clock" style="filter:brightness(0) invert(1);">
+    </div>
     <span class="value" id="timeVal">--:--</span>
   </div>
+
   <div class="divider"></div>
+
+  <!-- VELOCIDADE -->
   <div class="item">
-    <div class="stat-icon"><img src="https://cdn.streamelements.com/uploads/01ks5bv0qze4q8qj6rfnz9p02p.webp" alt="speed" style="width:34px;height:34px;object-fit:cover;border-radius:4px;"></div>
+    <div class="stat-icon">
+      <img src="https://cdn.streamelements.com/uploads/01ks5bv0qze4q8qj6rfnz9p02p.webp" alt="speed">
+    </div>
     <span class="value speed" id="speedVal">0 km/h</span>
   </div>
+
 </div>
 <script>
+  /* ── Ícones SVG inline por código WMO ─────────────────────────────────── */
+  const ICONS = {
+
+    // Sol
+    sol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="19" cy="19" r="7" fill="#FFD84D"/>
+      <g stroke="#FFD84D" stroke-width="2.2" stroke-linecap="round" class="anim-spin" style="transform-origin:19px 19px">
+        <line x1="19" y1="3"  x2="19" y2="7"/>  <line x1="19" y1="31" x2="19" y2="35"/>
+        <line x1="3"  y1="19" x2="7"  y2="19"/>  <line x1="31" y1="19" x2="35" y2="19"/>
+        <line x1="7.5"  y1="7.5"  x2="10.5" y2="10.5"/> <line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/>
+        <line x1="30.5" y1="7.5"  x2="27.5" y2="10.5"/> <line x1="10.5" y1="27.5" x2="7.5"  y2="30.5"/>
+      </g>
+    </svg>`,
+
+    // Lua
+    lua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 8C15.4 9.2 10 15 10 22c0 7.7 6.3 14 14 14 3.5 0 6.7-1.3 9.1-3.4C29.5 33.8 24 30 24 23c0-5.5 3.3-10.3 8.1-12.5C29.7 8.9 26 8 22 8z"
+        fill="#C8D8FF" class="anim-pulse"/>
+      <circle cx="26" cy="13" r="1.5" fill="#A0B8FF" opacity=".6"/>
+      <circle cx="15" cy="20" r="1"   fill="#A0B8FF" opacity=".4"/>
+    </svg>`,
+
+    // Nuvem com sol
+    nuvemSol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g style="transform-origin:12px 12px" class="anim-spin">
+        <circle cx="12" cy="12" r="5" fill="#FFD84D"/>
+        <g stroke="#FFD84D" stroke-width="1.8" stroke-linecap="round">
+          <line x1="12" y1="4"  x2="12" y2="6.5"/> <line x1="12" y1="17.5" x2="12" y2="20"/>
+          <line x1="4"  y1="12" x2="6.5" y2="12"/> <line x1="17.5" y1="12" x2="20" y2="12"/>
+          <line x1="6.3" y1="6.3" x2="8.1" y2="8.1"/> <line x1="15.9" y1="15.9" x2="17.7" y2="17.7"/>
+          <line x1="17.7" y1="6.3" x2="15.9" y2="8.1"/> <line x1="8.1" y1="15.9" x2="6.3" y2="17.7"/>
+        </g>
+      </g>
+      <path d="M30 27H16a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 27z" fill="#E8EFF8"/>
+    </svg>`,
+
+    // Nuvem com lua
+    nuvemLua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 6c-3.8 1-6.5 4.5-6.5 8.7 0 4.8 3.9 8.8 8.8 8.8 2.2 0 4.2-.8 5.7-2.1-1.2.3-2.5.3-3.8-.1-4-.9-6.7-4.7-6.2-8.8.2-2.1 1.1-4 2.4-5.4C16.3 7.1 16.2 6.5 16 6z"
+        fill="#C8D8FF" class="anim-pulse"/>
+      <path d="M30 31H17a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 31z" fill="#E8EFF8"/>
+    </svg>`,
+
+    // Nuvem (coberto)
+    nuvem: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 28H13a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 32 28z" fill="#C5D0E0" class="anim-drift"/>
+      <path d="M14 22H8a4 4 0 0 1-.3-8 5 5 0 0 1 9.8 1.2A3.4 3.4 0 0 1 14 22z" fill="#DAE2EE" class="anim-drift" style="animation-delay:.5s"/>
+    </svg>`,
+
+    // Nevoeiro
+    nevoeiro: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#A0B0C8" stroke-width="2.5" stroke-linecap="round">
+        <line x1="5" y1="11" x2="33" y2="11" class="anim-drift"/>
+        <line x1="8" y1="17" x2="30" y2="17" class="anim-drift" style="animation-delay:.3s"/>
+        <line x1="5" y1="23" x2="33" y2="23" class="anim-drift" style="animation-delay:.6s"/>
+        <line x1="9" y1="29" x2="27" y2="29" class="anim-drift" style="animation-delay:.9s"/>
+      </g>
+    </svg>`,
+
+    // Chuvisco
+    chuvisco: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 22H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 22z" fill="#C5D0E0"/>
+      <g fill="#5B8CFF" stroke="#5B8CFF" stroke-width=".5">
+        <ellipse cx="14" cy="30" rx="1.5" ry="2.5" class="anim-fall-1"/>
+        <ellipse cx="22" cy="30" rx="1.5" ry="2.5" class="anim-fall-2"/>
+        <ellipse cx="30" cy="30" rx="1.5" ry="2.5" class="anim-fall-3"/>
+      </g>
+    </svg>`,
+
+    // Chuva
+    chuva: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/>
+      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="25" x2="10" y2="33" class="anim-fall-1"/>
+        <line x1="20" y1="25" x2="18" y2="33" class="anim-fall-2"/>
+        <line x1="28" y1="25" x2="26" y2="33" class="anim-fall-3"/>
+      </g>
+    </svg>`,
+
+    // Chuva intensa
+    chuvaForte: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#6A7A90"/>
+      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
+        <line x1="10" y1="23" x2="7"  y2="33" class="anim-fall-1"/>
+        <line x1="17" y1="23" x2="14" y2="33" class="anim-fall-2"/>
+        <line x1="24" y1="23" x2="21" y2="33" class="anim-fall-3"/>
+        <line x1="31" y1="23" x2="28" y2="33" class="anim-fall-1" style="animation-delay:.2s"/>
+      </g>
+    </svg>`,
+
+    // Neve
+    neve: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#C5D0E0"/>
+      <g fill="#C8E8FF">
+        <text x="11" y="33" font-size="10" class="anim-snow-1" style="transform-origin:14px 30px">❄</text>
+        <text x="19" y="33" font-size="10" class="anim-snow-2" style="transform-origin:22px 30px">❄</text>
+        <text x="27" y="33" font-size="10" class="anim-snow-3" style="transform-origin:30px 30px">❄</text>
+      </g>
+    </svg>`,
+
+    // Granizo / mista
+    granizo: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/>
+      <g fill="#A8D8FF">
+        <circle cx="13" cy="29" r="2.5" class="anim-fall-1"/>
+        <circle cx="21" cy="29" r="2.5" class="anim-fall-2"/>
+        <circle cx="29" cy="29" r="2.5" class="anim-fall-3"/>
+      </g>
+    </svg>`,
+
+    // Trovoada
+    trovoada: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#5A6A80"/>
+      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="24" x2="10" y2="30" class="anim-fall-1"/>
+        <line x1="28" y1="24" x2="26" y2="30" class="anim-fall-3"/>
+      </g>
+      <path d="M22 21 L17 30 L21 30 L18 38 L26 27 L22 27 Z"
+        fill="#FFE040" class="anim-flicker"/>
+    </svg>`,
+  };
+
+  function setWeatherIcon(code, isDay) {
+    const c = Number(code);
+    const day = isDay === 1;
+    const container = document.getElementById('weatherIconContainer');
+    let icon;
+    if (c === 0)                                  icon = day ? ICONS.sol : ICONS.lua;
+    else if (c === 1 || c === 2)                  icon = day ? ICONS.nuvemSol : ICONS.nuvemLua;
+    else if (c === 3)                             icon = ICONS.nuvem;
+    else if (c === 45 || c === 48)                icon = ICONS.nevoeiro;
+    else if (c >= 51 && c <= 55)                  icon = ICONS.chuvisco;
+    else if (c === 56 || c === 57)                icon = ICONS.granizo;
+    else if (c === 61 || c === 63)                icon = ICONS.chuva;
+    else if (c === 65)                            icon = ICONS.chuvaForte;
+    else if (c === 66 || c === 67)                icon = ICONS.granizo;
+    else if (c >= 71 && c <= 77)                  icon = ICONS.neve;
+    else if (c === 80 || c === 81)                icon = ICONS.chuva;
+    else if (c === 82)                            icon = ICONS.chuvaForte;
+    else if (c === 85 || c === 86)                icon = ICONS.neve;
+    else if (c >= 95 && c <= 99)                  icon = ICONS.trovoada;
+    else                                          icon = day ? ICONS.sol : ICONS.lua;
+    container.innerHTML = icon;
+  }
+
+  /* ── Relógio ─────────────────────────────────────────────── */
   function updateClock() {
     const now = new Date();
     document.getElementById('timeVal').textContent =
@@ -102,94 +298,52 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  let lastCity = 0;
-  let lastWeather = 0;
+  let lastCity = 0, lastWeather = 0;
 
+  /* ── Cidade ──────────────────────────────────────────────── */
   async function fetchCity(lat, lng) {
     if (Date.now() - lastCity < 30000) return;
     lastCity = Date.now();
     try {
-      const res = await fetch(
-        'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json'
-      );
+      const res = await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json');
       const d = await res.json();
       const city = d.address?.city || d.address?.town || d.address?.village || d.address?.suburb || '--';
       const el = document.getElementById('cityVal');
       el.textContent = city;
       el.classList.remove('scrolling');
-      setTimeout(() => {
-        if (el.scrollWidth > 140) el.classList.add('scrolling');
-      }, 50);
+      setTimeout(() => { if (el.scrollWidth > 140) el.classList.add('scrolling'); }, 50);
     } catch(e) {}
   }
 
-  function getWeatherEmoji(code, isDay) {
-    const c = Number(code);
-    const day = isDay === 1;
-
-    // 0 = céu limpo
-    if (c === 0) return day ? '☀️' : '🌙';
-    // 1 = maioritariamente limpo
-    if (c === 1) return day ? '🌤️' : '🌙';
-    // 2 = parcialmente nublado
-    if (c === 2) return day ? '⛅' : '🌑';
-    // 3 = nublado (CORRIGIDO: agora distingue dia/noite)
-    if (c === 3) return day ? '☁️' : '☁️🌑';
-    // nevoeiro
-    if (c === 45 || c === 48) return day ? '🌫️' : '🌫️';
-    // chuvisco leve/moderado
-    if (c >= 51 && c <= 55) return day ? '🌦️' : '🌧️';
-    // chuvisco gelado
-    if (c === 56 || c === 57) return '🌨️';
-    // chuva leve/moderada
-    if (c >= 61 && c <= 63) return day ? '🌦️' : '🌧️';
-    // chuva intensa
-    if (c >= 64 && c <= 65) return '🌧️';
-    // chuva gelada
-    if (c === 66 || c === 67) return '🌨️';
-    // neve
-    if (c >= 71 && c <= 77) return '❄️';
-    // aguaceiros
-    if (c >= 80 && c <= 82) return day ? '🌦️' : '🌧️';
-    // aguaceiros de neve
-    if (c === 85 || c === 86) return '🌨️';
-    // trovoada
-    if (c >= 95 && c <= 99) return '⛈️';
-
-    return day ? '☀️' : '🌙';
-  }
-
+  /* ── Tempo ───────────────────────────────────────────────── */
   async function fetchWeather(lat, lng) {
     if (Date.now() - lastWeather < 300000) return;
     lastWeather = Date.now();
     try {
       const res = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng +
-        '&current=temperature_2m,weather_code,is_day&timezone=auto'
-      );
+        'https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+
+        '&current=temperature_2m,weather_code,is_day&timezone=auto');
       const d = await res.json();
       const temp = Math.round(Number(d.current?.temperature_2m) || 0);
       const code = Number(d.current?.weather_code) || 0;
-      const isDay = d.current?.is_day ?? 0;
+      const isDay = d.current?.is_day ?? 1;
       document.getElementById('tempVal').textContent = isNaN(temp) ? '--°' : temp + '°';
-      document.getElementById('weatherIcon').textContent = getWeatherEmoji(code, isDay);
+      setWeatherIcon(code, isDay);
     } catch(e) {}
   }
 
+  /* ── GPS ─────────────────────────────────────────────────── */
   if ('geolocation' in navigator) {
     navigator.geolocation.watchPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const speed = pos.coords.speed;
-        const kmh = (speed != null && speed >= 0) ? Math.round(speed * 3.6) : 0;
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        const kmh = (pos.coords.speed != null && pos.coords.speed >= 0)
+          ? Math.round(pos.coords.speed * 3.6) : 0;
         document.getElementById('speedVal').textContent = kmh + ' km/h';
         fetchCity(lat, lng);
         fetchWeather(lat, lng);
       },
-      (err) => {
-        document.getElementById('cityVal').textContent = 'Sem GPS';
-      },
+      () => { document.getElementById('cityVal').textContent = 'Sem GPS'; },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
   } else {
