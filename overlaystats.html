@@ -23,6 +23,9 @@
       display: flex;
       align-items: center;
       gap: 0;
+      /* Largura fixa para acomodar nomes grandes sem forçar ajuste */
+      width: auto;
+      min-width: 680px;
     }
     .item {
       display: flex;
@@ -30,6 +33,12 @@
       justify-content: center;
       padding: 0 14px;
       gap: 10px;
+      flex-shrink: 0;
+    }
+    /* Item da cidade pode crescer mais */
+    .item:first-child {
+      flex-shrink: 1;
+      min-width: 200px;
     }
     .value {
       font-size: 42px;
@@ -43,25 +52,38 @@
     .value.speed { color: #2ECC71; }
     .stat-icon {
       width: 56px; height: 56px;
-      background: #0E1013;
+      background: transparent;
       border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       overflow: visible;
     }
-    .stat-icon img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
-    .stat-icon svg { width: 38px; height: 38px; }
-    .city-wrap { width: 140px; overflow: hidden; }
-    .value.city { font-size: 32px; letter-spacing: -0.5px; display: inline-block; }
-    .value.city.scrolling { animation: cityScroll 9s ease-in-out infinite; }
-    @keyframes cityScroll {
-      0%   { transform: translateX(0); }
-      15%  { transform: translateX(0); }
-      60%  { transform: translateX(-100%); }
-      75%  { transform: translateX(-100%); }
-      76%  { transform: translateX(140px); }
-      100% { transform: translateX(0); }
+    .stat-icon img { 
+      width: 34px; height: 34px; 
+      object-fit: cover; 
+      border-radius: 4px;
+      background: transparent;
     }
+    .stat-icon svg { 
+      width: 38px; 
+      height: 38px; 
+      display: block;
+    }
+    
+    /* Container da cidade com espaço fixo e suficiente para nomes grandes */
+    .city-wrap { 
+      min-width: 200px;
+      max-width: 320px;
+      overflow: visible;
+    }
+    .value.city { 
+      font-size: 32px; 
+      letter-spacing: -0.5px; 
+      display: inline-block;
+      white-space: nowrap;
+      /* Sem animação de scroll, apenas espaço fixo */
+    }
+    
     .divider {
       width: 1px; height: 48px;
       background: rgba(255,255,255,0.08);
@@ -91,7 +113,7 @@
 <body>
 <div class="card">
 
-  <!-- CIDADE -->
+  <!-- CIDADE - espaço FIXO pré-definido (não ajusta dinamicamente) -->
   <div class="item">
     <div class="stat-icon">
       <img src="https://cdn.streamelements.com/uploads/01ks5arpdstgph8e6nx10sgtte.webp" alt="PT">
@@ -127,7 +149,7 @@
   <!-- HORA -->
   <div class="item">
     <div class="stat-icon">
-      <img src="https://cdn.streamelements.com/uploads/01ktaew1w1xb6fg708e06efwza.webp" alt="clock" style="filter:brightness(0) invert(1);">
+      <img src="https://cdn.streamelements.com/uploads/01ktaew1w1xb6fg708e06efwza.webp" alt="clock" style="filter:brightness(0) invert(1); background: transparent;">
     </div>
     <span class="value" id="timeVal">--:--</span>
   </div>
@@ -137,7 +159,7 @@
   <!-- VELOCIDADE -->
   <div class="item">
     <div class="stat-icon">
-      <img src="https://cdn.streamelements.com/uploads/01ks5bv0qze4q8qj6rfnz9p02p.webp" alt="speed">
+      <img src="https://cdn.streamelements.com/uploads/01ks5bv0qze4q8qj6rfnz9p02p.webp" alt="speed" style="background: transparent;">
     </div>
     <span class="value speed" id="speedVal">0 km/h</span>
   </div>
@@ -300,7 +322,7 @@
 
   let lastCity = 0, lastWeather = 0;
 
-  /* ── Cidade ──────────────────────────────────────────────── */
+  /* ── Cidade: espaço fixo pré-definido, sem rolagem e sem ajuste dinâmico ── */
   async function fetchCity(lat, lng) {
     if (Date.now() - lastCity < 30000) return;
     lastCity = Date.now();
@@ -310,9 +332,11 @@
       const city = d.address?.city || d.address?.town || d.address?.village || d.address?.suburb || '--';
       const el = document.getElementById('cityVal');
       el.textContent = city;
-      el.classList.remove('scrolling');
-      setTimeout(() => { if (el.scrollWidth > 140) el.classList.add('scrolling'); }, 50);
-    } catch(e) {}
+      // Mantém o espaço fixo - o container tem min-width e max-width definidos
+      // Sem animação, sem scroll, apenas texto estático com espaço reservado
+    } catch(e) {
+      console.warn("Erro ao buscar cidade:", e);
+    }
   }
 
   /* ── Tempo ───────────────────────────────────────────────── */
@@ -329,7 +353,9 @@
       const isDay = d.current?.is_day ?? 1;
       document.getElementById('tempVal').textContent = isNaN(temp) ? '--°' : temp + '°';
       setWeatherIcon(code, isDay);
-    } catch(e) {}
+    } catch(e) {
+      console.warn("Erro ao buscar clima:", e);
+    }
   }
 
   /* ── GPS ─────────────────────────────────────────────────── */
@@ -343,7 +369,10 @@
         fetchCity(lat, lng);
         fetchWeather(lat, lng);
       },
-      () => { document.getElementById('cityVal').textContent = 'Sem GPS'; },
+      (err) => { 
+        console.warn("Erro GPS:", err);
+        document.getElementById('cityVal').textContent = 'Sem GPS'; 
+      },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
   } else {
