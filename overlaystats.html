@@ -153,12 +153,12 @@
   updateClock();
 
   /* ---- KM DO DIA ---- */
-  window.dailyKm = 0;
-  window.lastPos = null;
+  let dailyKm = 0;
+  let lastPos = null;
 
   function resetKm() {
-    window.dailyKm = 0;
-    window.lastPos = null;
+    dailyKm = 0;
+    lastPos = null;
     document.getElementById('kmVal').textContent = '0 km';
   }
   window.resetDailyKm = resetKm;
@@ -172,14 +172,14 @@
   }
 
   function updateKm(lat, lng) {
-    if (window.lastPos !== null) {
-      const d = distM(window.lastPos.lat, window.lastPos.lng, lat, lng);
+    if (lastPos !== null) {
+      const d = distM(lastPos.lat, lastPos.lng, lat, lng);
       if (d < 500) {
-        window.dailyKm += d / 1000;
-        document.getElementById('kmVal').textContent = window.dailyKm.toFixed(1) + ' km';
+        dailyKm += d / 1000;
+        document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
       }
     }
-    window.lastPos = { lat, lng };
+    lastPos = { lat, lng };
   }
 
   /* ---- GPS & WEATHER ---- */
@@ -360,8 +360,8 @@
         if (parts.length >= 2) {
           const val = parseFloat(parts[1].replace(',', '.'));
           if (!isNaN(val) && val >= 0) {
-            window.dailyKm = val;
-            document.getElementById('kmVal').textContent = val.toFixed(1) + ' km';
+            dailyKm = val;
+            document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
             log('✅ KM DEFINIDO: ' + val + ' km');
           } else {
             log('ERR: valor inválido: ' + parts[1]);
@@ -378,6 +378,12 @@
       log('WS FECHADO — reconectando...');
       if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
       reconnect();
+    });
+  })();
+
+</script>
+</body>
+</html>
     });
   })();
 
