@@ -153,12 +153,12 @@
   updateClock();
 
   /* ---- KM DO DIA ---- */
-  let dailyKm = 0;
-  let lastPos = null;
+  window.dailyKm = 0;
+  window.lastPos = null;
 
   function resetKm() {
-    dailyKm = 0;
-    lastPos = null;
+    window.dailyKm = 0;
+    window.lastPos = null;
     document.getElementById('kmVal').textContent = '0 km';
   }
   window.resetDailyKm = resetKm;
@@ -172,14 +172,14 @@
   }
 
   function updateKm(lat, lng) {
-    if (lastPos !== null) {
-      const d = distM(lastPos.lat, lastPos.lng, lat, lng);
+    if (window.lastPos !== null) {
+      const d = distM(window.lastPos.lat, window.lastPos.lng, lat, lng);
       if (d < 500) {
-        dailyKm += d / 1000;
-        document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
+        window.dailyKm += d / 1000;
+        document.getElementById('kmVal').textContent = window.dailyKm.toFixed(1) + ' km';
       }
     }
-    lastPos = { lat, lng };
+    window.lastPos = { lat, lng };
   }
 
   /* ---- GPS & WEATHER ---- */
@@ -245,7 +245,7 @@
   /* ============================================================
      TWITCH IRC WEBSOCKET — COMANDOS DE CHAT
      ============================================================
-     CONFIGURA AQUI:
+     CONFIGURAÇÃO:
      - TWITCH_CHANNEL: nome do teu canal (minúsculas, sem #)
      - TWITCH_OAUTH:   token de https://twitchapps.com/tmi/
      - TWITCH_NICK:    nome da conta (pode ser o teu)
@@ -254,11 +254,20 @@
   const TWITCH_OAUTH   = 'oauth:9camhmqhjxliupb18susjfnkoqnr44';
   const TWITCH_NICK    = 'blorayz';
 
+  /* ---- DEBUG VISUAL NO OVERLAY ---- */
+  const debugDiv = document.createElement('div');
+  debugDiv.style.cssText = 'position:fixed;bottom:4px;left:4px;font-size:10px;color:#0f0;background:rgba(0,0,0,0.7);padding:4px 8px;border-radius:4px;z-index:9999;font-family:monospace;white-space:pre-wrap;max-width:400px;max-height:120px;overflow:auto;';
+  document.body.appendChild(debugDiv);
+  function log(msg) {
+    const line = '[' + new Date().toLocaleTimeString('pt-PT') + '] ' + msg;
+    console.log(line);
+    debugDiv.textContent = line + '
+' + debugDiv.textContent;
+    if (debugDiv.textContent.length > 2000) debugDiv.textContent = debugDiv.textContent.slice(0, 2000);
+  }
+
   (function initTwitchChat() {
-    if (TWITCH_CHANNEL === 'AGORA_TU_CANAL') {
-      console.warn('[Twitch IRC] Canal não configurado. Edita TWITCH_CHANNEL no topo do script.');
-      return;
-    }
+    log('Iniciando Twitch IRC...');
 
     const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
     let reconnectTimer = null;
@@ -269,10 +278,12 @@
       ws.send('NICK ' + TWITCH_NICK);
       ws.send('JOIN #' + TWITCH_CHANNEL.toLowerCase());
       ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+      log('Enviado: PASS, NICK, JOIN, CAP');
     }
 
     function reconnect() {
       if (reconnectTimer) return;
+      log('Reconectando em 5s...');
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
         initTwitchChat();
@@ -280,7 +291,7 @@
     }
 
     ws.addEventListener('open', () => {
-      console.log('[Twitch IRC] Ligado ao servidor');
+      log('WS OPEN — Ligado ao Twitch IRC');
       connect();
       pingInterval = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) ws.send('PING');
@@ -296,8 +307,19 @@
         return;
       }
 
-      // Ignorar mensagens do sistema
-      if (!raw.includes('PRIVMSG')) return;
+      // Log de mensagens do sistema (JOIN, etc.)
+      if (raw.includes('JOIN') || raw.includes('001') || raw.includes('376') || raw.includes('CAP')) {
+        log('SYS: ' + raw.slice(0, 80));
+        return;
+      }
+
+      // Ignorar mensagens que não são PRIVMSG
+      if (!raw.includes('PRIVMSG')) {
+        // log('IGN: ' + raw.slice(0, 60));
+        return;
+      }
+
+      log('RAW: ' + raw.slice(0, 200));
 
       // Parse da mensagem IRC com tags
       // Formato: @tags :nick!nick@nick.tmi.twitch.tv PRIVMSG #canal :mensagem
@@ -311,37 +333,49 @@
       }
 
       const msgMatch = raw.match(/PRIVMSG #[^ ]+ :(.+)$/);
-      if (!msgMatch) return;
+      if (!msgMatch) {
+        log('ERR: não consegui parsear PRIVMSG');
+        return;
+      }
       const text = msgMatch[1].trim().toLowerCase();
+      const displayName = tags['display-name'] || '???';
+
+      log('MSG de ' + displayName + ': "' + text + '"');
+      log('TAGS: mod=' + tags.mod + ' | badges=' + (tags.badges || 'null'));
 
       // Verificar autorização (mod, broadcaster, vip)
       const isMod = tags.mod === '1';
-      const isBroadcaster = tags.badges && tags.badges.includes('broadcaster');
-      const isVip = tags.badges && tags.badges.includes('vip');
+      const badges = tags.badges || '';
+      const isBroadcaster = badges.includes('broadcaster');
+      const isVip = badges.includes('vip');
       const isAuthorized = isMod || isBroadcaster || isVip;
+
+      log('AUTH: mod=' + isMod + ' broadcaster=' + isBroadcaster + ' vip=' + isVip + ' → ' + (isAuthorized ? 'AUTORIZADO' : 'NEGADO'));
 
       if (!isAuthorized) return;
 
-      // Comando !km <valor> — define o valor exato (não adiciona)
+      // Comando !km <valor> — define o valor exato
       if (text.startsWith('!km ')) {
         const parts = text.split(' ');
         if (parts.length >= 2) {
           const val = parseFloat(parts[1].replace(',', '.'));
           if (!isNaN(val) && val >= 0) {
-            dailyKm = val;  // DEFINE o valor, não adiciona
-            document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
-            console.log('[Chat] KM definido para ' + val + ' por ' + (tags['display-name'] || 'admin'));
+            window.dailyKm = val;
+            document.getElementById('kmVal').textContent = val.toFixed(1) + ' km';
+            log('✅ KM DEFINIDO: ' + val + ' km');
+          } else {
+            log('ERR: valor inválido: ' + parts[1]);
           }
         }
       }
     });
 
     ws.addEventListener('error', (err) => {
-      console.error('[Twitch IRC] Erro:', err);
+      log('WS ERRO: ' + JSON.stringify(err));
     });
 
     ws.addEventListener('close', () => {
-      console.log('[Twitch IRC] Desligado. A reconectar...');
+      log('WS FECHADO — reconectando...');
       if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
       reconnect();
     });
