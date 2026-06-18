@@ -7,87 +7,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-    html, body {
-      background: transparent !important;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Inter', sans-serif;
-    }
+    html, body { background: transparent !important; overflow: hidden; width: 100%; height: 100%; }
+    body { display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
     .card {
       background: rgba(22, 24, 28, 0.88);
-      border-radius: 20px;
-      border: 2px solid #D4A017;
-      padding: 16px 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0;
-      flex-shrink: 0;
-      flex-wrap: nowrap;
-      white-space: nowrap;
+      border-radius: 20px; border: 2px solid #D4A017;
+      padding: 16px 20px; display: inline-flex; align-items: center;
+      gap: 0; flex-shrink: 0; flex-wrap: nowrap; white-space: nowrap;
     }
-    .item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 14px;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-    .value {
-      font-size: 42px;
-      font-weight: 900;
-      color: #F0F3F8;
-      letter-spacing: -1px;
-      line-height: 1;
-      white-space: nowrap;
-    }
+    .item { display: flex; align-items: center; justify-content: center; padding: 0 14px; gap: 10px; flex-shrink: 0; }
+    .value { font-size: 42px; font-weight: 900; color: #F0F3F8; letter-spacing: -1px; line-height: 1; white-space: nowrap; }
     .value.temp  { color: #3B6CFF; }
     .value.speed { color: #2ECC71; }
-    .stat-icon {
-      width: 56px; height: 56px;
-      border-radius: 18px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      overflow: visible;
-      background: transparent;
-    }
+    .value.km    { color: #F0A030; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: visible; background: transparent; }
     .stat-icon img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
     .stat-icon svg { width: 38px; height: 38px; }
-    .city-wrap {
-      width: 260px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .value.city { font-size: 32px; letter-spacing: -0.5px; display: inline-block; }
-    .value.city.scrolling { animation: cityScroll 9s ease-in-out infinite; }
-    @keyframes cityScroll {
-      0%   { transform: translateX(0); }
-      15%  { transform: translateX(0); }
-      60%  { transform: translateX(-100%); }
-      75%  { transform: translateX(-100%); }
-      76%  { transform: translateX(260px); }
-      100% { transform: translateX(0); }
-    }
-    .divider {
-      width: 1px; height: 48px;
-      background: rgba(255,255,255,0.08);
-      flex-shrink: 0;
-    }
-
-    @keyframes spin    { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .divider { width: 1px; height: 48px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
     @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:.45; } }
     @keyframes fall    { 0% { transform: translateY(0); opacity:1; } 100% { transform: translateY(6px); opacity:0; } }
     @keyframes flicker { 0%,100% { opacity:1; transform: scaleY(1); } 50% { opacity:.6; transform: scaleY(.85); } }
     @keyframes drift   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
     @keyframes snowfall{ 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(8px) rotate(45deg); opacity:0; } }
-
-    .anim-spin    { animation: spin    4s linear infinite; transform-origin: center; }
     .anim-pulse   { animation: pulse   2s ease-in-out infinite; }
     .anim-fall-1  { animation: fall    1.4s ease-in infinite; }
     .anim-fall-2  { animation: fall    1.4s ease-in .4s infinite; }
@@ -102,12 +43,11 @@
 <body>
 <div class="card">
 
-  <!-- CIDADE -->
+  <!-- BANDEIRA PT -->
   <div class="item">
     <div class="stat-icon">
       <img src="https://cdn.streamelements.com/uploads/01ks5arpdstgph8e6nx10sgtte.webp" alt="PT">
     </div>
-    <div class="city-wrap"><span class="value city" id="cityVal">A localizar...</span></div>
   </div>
 
   <div class="divider"></div>
@@ -118,14 +58,10 @@
       <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="19" cy="19" r="7" fill="#FFD84D"/>
         <g stroke="#FFD84D" stroke-width="2.2" stroke-linecap="round">
-          <line x1="19" y1="3"  x2="19" y2="7"/>
-          <line x1="19" y1="31" x2="19" y2="35"/>
-          <line x1="3"  y1="19" x2="7"  y2="19"/>
-          <line x1="31" y1="19" x2="35" y2="19"/>
-          <line x1="7.5"  y1="7.5"  x2="10.5" y2="10.5"/>
-          <line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/>
-          <line x1="30.5" y1="7.5"  x2="27.5" y2="10.5"/>
-          <line x1="10.5" y1="27.5" x2="7.5"  y2="30.5"/>
+          <line x1="19" y1="3" x2="19" y2="7"/><line x1="19" y1="31" x2="19" y2="35"/>
+          <line x1="3" y1="19" x2="7" y2="19"/><line x1="31" y1="19" x2="35" y2="19"/>
+          <line x1="7.5" y1="7.5" x2="10.5" y2="10.5"/><line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/>
+          <line x1="30.5" y1="7.5" x2="27.5" y2="10.5"/><line x1="10.5" y1="27.5" x2="7.5" y2="30.5"/>
         </g>
       </svg>
     </div>
@@ -144,6 +80,22 @@
 
   <div class="divider"></div>
 
+  <!-- KM DO DIA -->
+  <div class="item">
+    <div class="stat-icon">
+      <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="14" width="30" height="14" rx="4" fill="#F0A030" opacity=".15"/>
+        <text x="19" y="26" text-anchor="middle" font-size="13" font-weight="900" fill="#F0A030" font-family="Inter,sans-serif">km</text>
+        <path d="M7 10 Q19 4 31 10" stroke="#F0A030" stroke-width="2" stroke-linecap="round" fill="none" opacity=".7"/>
+        <circle cx="7" cy="10" r="1.8" fill="#F0A030" opacity=".7"/>
+        <circle cx="31" cy="10" r="1.8" fill="#F0A030" opacity=".7"/>
+      </svg>
+    </div>
+    <span class="value km" id="kmVal">0 km</span>
+  </div>
+
+  <div class="divider"></div>
+
   <!-- VELOCIDADE -->
   <div class="item">
     <div class="stat-icon">
@@ -155,119 +107,39 @@
 </div>
 <script>
   const ICONS = {
-    sol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="19" cy="19" r="7" fill="#FFD84D"/>
-      <g stroke="#FFD84D" stroke-width="2.2" stroke-linecap="round">
-        <line x1="19" y1="3"  x2="19" y2="7"/>  <line x1="19" y1="31" x2="19" y2="35"/>
-        <line x1="3"  y1="19" x2="7"  y2="19"/>  <line x1="31" y1="19" x2="35" y2="19"/>
-        <line x1="7.5"  y1="7.5"  x2="10.5" y2="10.5"/> <line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/>
-        <line x1="30.5" y1="7.5"  x2="27.5" y2="10.5"/> <line x1="10.5" y1="27.5" x2="7.5"  y2="30.5"/>
-      </g>
-    </svg>`,
-    lua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22 8C15.4 9.2 10 15 10 22c0 7.7 6.3 14 14 14 3.5 0 6.7-1.3 9.1-3.4C29.5 33.8 24 30 24 23c0-5.5 3.3-10.3 8.1-12.5C29.7 8.9 26 8 22 8z" fill="#C8D8FF" class="anim-pulse"/>
-      <circle cx="26" cy="13" r="1.5" fill="#A0B8FF" opacity=".6"/>
-      <circle cx="15" cy="20" r="1"   fill="#A0B8FF" opacity=".4"/>
-    </svg>`,
-    nuvemSol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g style="transform-origin:12px 12px">
-        <circle cx="12" cy="12" r="5" fill="#FFD84D"/>
-        <g stroke="#FFD84D" stroke-width="1.8" stroke-linecap="round">
-          <line x1="12" y1="4"  x2="12" y2="6.5"/> <line x1="12" y1="17.5" x2="12" y2="20"/>
-          <line x1="4"  y1="12" x2="6.5" y2="12"/> <line x1="17.5" y1="12" x2="20" y2="12"/>
-          <line x1="6.3" y1="6.3" x2="8.1" y2="8.1"/> <line x1="15.9" y1="15.9" x2="17.7" y2="17.7"/>
-          <line x1="17.7" y1="6.3" x2="15.9" y2="8.1"/> <line x1="8.1" y1="15.9" x2="6.3" y2="17.7"/>
-        </g>
-      </g>
-      <path d="M30 27H16a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 27z" fill="#E8EFF8"/>
-    </svg>`,
-    nuvemLua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 6c-3.8 1-6.5 4.5-6.5 8.7 0 4.8 3.9 8.8 8.8 8.8 2.2 0 4.2-.8 5.7-2.1-1.2.3-2.5.3-3.8-.1-4-.9-6.7-4.7-6.2-8.8.2-2.1 1.1-4 2.4-5.4C16.3 7.1 16.2 6.5 16 6z" fill="#C8D8FF" class="anim-pulse"/>
-      <path d="M30 31H17a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 31z" fill="#E8EFF8"/>
-    </svg>`,
-    nuvem: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 28H13a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 32 28z" fill="#C5D0E0" class="anim-drift"/>
-      <path d="M14 22H8a4 4 0 0 1-.3-8 5 5 0 0 1 9.8 1.2A3.4 3.4 0 0 1 14 22z" fill="#DAE2EE" class="anim-drift" style="animation-delay:.5s"/>
-    </svg>`,
-    nevoeiro: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g stroke="#A0B0C8" stroke-width="2.5" stroke-linecap="round">
-        <line x1="5" y1="11" x2="33" y2="11" class="anim-drift"/>
-        <line x1="8" y1="17" x2="30" y2="17" class="anim-drift" style="animation-delay:.3s"/>
-        <line x1="5" y1="23" x2="33" y2="23" class="anim-drift" style="animation-delay:.6s"/>
-        <line x1="9" y1="29" x2="27" y2="29" class="anim-drift" style="animation-delay:.9s"/>
-      </g>
-    </svg>`,
-    chuvisco: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 22H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 22z" fill="#C5D0E0"/>
-      <g fill="#5B8CFF" stroke="#5B8CFF" stroke-width=".5">
-        <ellipse cx="14" cy="30" rx="1.5" ry="2.5" class="anim-fall-1"/>
-        <ellipse cx="22" cy="30" rx="1.5" ry="2.5" class="anim-fall-2"/>
-        <ellipse cx="30" cy="30" rx="1.5" ry="2.5" class="anim-fall-3"/>
-      </g>
-    </svg>`,
-    chuva: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/>
-      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
-        <line x1="12" y1="25" x2="10" y2="33" class="anim-fall-1"/>
-        <line x1="20" y1="25" x2="18" y2="33" class="anim-fall-2"/>
-        <line x1="28" y1="25" x2="26" y2="33" class="anim-fall-3"/>
-      </g>
-    </svg>`,
-    chuvaForte: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#6A7A90"/>
-      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
-        <line x1="10" y1="23" x2="7"  y2="33" class="anim-fall-1"/>
-        <line x1="17" y1="23" x2="14" y2="33" class="anim-fall-2"/>
-        <line x1="24" y1="23" x2="21" y2="33" class="anim-fall-3"/>
-        <line x1="31" y1="23" x2="28" y2="33" class="anim-fall-1" style="animation-delay:.2s"/>
-      </g>
-    </svg>`,
-    neve: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#C5D0E0"/>
-      <g fill="#C8E8FF">
-        <text x="11" y="33" font-size="10" class="anim-snow-1" style="transform-origin:14px 30px">❄</text>
-        <text x="19" y="33" font-size="10" class="anim-snow-2" style="transform-origin:22px 30px">❄</text>
-        <text x="27" y="33" font-size="10" class="anim-snow-3" style="transform-origin:30px 30px">❄</text>
-      </g>
-    </svg>`,
-    granizo: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/>
-      <g fill="#A8D8FF">
-        <circle cx="13" cy="29" r="2.5" class="anim-fall-1"/>
-        <circle cx="21" cy="29" r="2.5" class="anim-fall-2"/>
-        <circle cx="29" cy="29" r="2.5" class="anim-fall-3"/>
-      </g>
-    </svg>`,
-    trovoada: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#5A6A80"/>
-      <g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round">
-        <line x1="12" y1="24" x2="10" y2="30" class="anim-fall-1"/>
-        <line x1="28" y1="24" x2="26" y2="30" class="anim-fall-3"/>
-      </g>
-      <path d="M22 21 L17 30 L21 30 L18 38 L26 27 L22 27 Z" fill="#FFE040" class="anim-flicker"/>
-    </svg>`,
+    sol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="19" cy="19" r="7" fill="#FFD84D"/><g stroke="#FFD84D" stroke-width="2.2" stroke-linecap="round"><line x1="19" y1="3" x2="19" y2="7"/><line x1="19" y1="31" x2="19" y2="35"/><line x1="3" y1="19" x2="7" y2="19"/><line x1="31" y1="19" x2="35" y2="19"/><line x1="7.5" y1="7.5" x2="10.5" y2="10.5"/><line x1="27.5" y1="27.5" x2="30.5" y2="30.5"/><line x1="30.5" y1="7.5" x2="27.5" y2="10.5"/><line x1="10.5" y1="27.5" x2="7.5" y2="30.5"/></g></svg>`,
+    lua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 8C15.4 9.2 10 15 10 22c0 7.7 6.3 14 14 14 3.5 0 6.7-1.3 9.1-3.4C29.5 33.8 24 30 24 23c0-5.5 3.3-10.3 8.1-12.5C29.7 8.9 26 8 22 8z" fill="#C8D8FF" class="anim-pulse"/><circle cx="26" cy="13" r="1.5" fill="#A0B8FF" opacity=".6"/><circle cx="15" cy="20" r="1" fill="#A0B8FF" opacity=".4"/></svg>`,
+    nuvemSol: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><g style="transform-origin:12px 12px"><circle cx="12" cy="12" r="5" fill="#FFD84D"/><g stroke="#FFD84D" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="6.5"/><line x1="12" y1="17.5" x2="12" y2="20"/><line x1="4" y1="12" x2="6.5" y2="12"/><line x1="17.5" y1="12" x2="20" y2="12"/><line x1="6.3" y1="6.3" x2="8.1" y2="8.1"/><line x1="15.9" y1="15.9" x2="17.7" y2="17.7"/><line x1="17.7" y1="6.3" x2="15.9" y2="8.1"/><line x1="8.1" y1="15.9" x2="6.3" y2="17.7"/></g></g><path d="M30 27H16a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 27z" fill="#E8EFF8"/></svg>`,
+    nuvemLua: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 6c-3.8 1-6.5 4.5-6.5 8.7 0 4.8 3.9 8.8 8.8 8.8 2.2 0 4.2-.8 5.7-2.1-1.2.3-2.5.3-3.8-.1-4-.9-6.7-4.7-6.2-8.8.2-2.1 1.1-4 2.4-5.4C16.3 7.1 16.2 6.5 16 6z" fill="#C8D8FF" class="anim-pulse"/><path d="M30 31H17a6 6 0 0 1-.5-12 8 8 0 0 1 15.5 2A5 5 0 0 1 30 31z" fill="#E8EFF8"/></svg>`,
+    nuvem: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 28H13a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 32 28z" fill="#C5D0E0" class="anim-drift"/><path d="M14 22H8a4 4 0 0 1-.3-8 5 5 0 0 1 9.8 1.2A3.4 3.4 0 0 1 14 22z" fill="#DAE2EE" class="anim-drift" style="animation-delay:.5s"/></svg>`,
+    nevoeiro: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#A0B0C8" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="11" x2="33" y2="11" class="anim-drift"/><line x1="8" y1="17" x2="30" y2="17" class="anim-drift" style="animation-delay:.3s"/><line x1="5" y1="23" x2="33" y2="23" class="anim-drift" style="animation-delay:.6s"/><line x1="9" y1="29" x2="27" y2="29" class="anim-drift" style="animation-delay:.9s"/></g></svg>`,
+    chuvisco: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 22H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 22z" fill="#C5D0E0"/><g fill="#5B8CFF" stroke="#5B8CFF" stroke-width=".5"><ellipse cx="14" cy="30" rx="1.5" ry="2.5" class="anim-fall-1"/><ellipse cx="22" cy="30" rx="1.5" ry="2.5" class="anim-fall-2"/><ellipse cx="30" cy="30" rx="1.5" ry="2.5" class="anim-fall-3"/></g></svg>`,
+    chuva: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/><g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="25" x2="10" y2="33" class="anim-fall-1"/><line x1="20" y1="25" x2="18" y2="33" class="anim-fall-2"/><line x1="28" y1="25" x2="26" y2="33" class="anim-fall-3"/></g></svg>`,
+    chuvaForte: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#6A7A90"/><g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round"><line x1="10" y1="23" x2="7" y2="33" class="anim-fall-1"/><line x1="17" y1="23" x2="14" y2="33" class="anim-fall-2"/><line x1="24" y1="23" x2="21" y2="33" class="anim-fall-3"/><line x1="31" y1="23" x2="28" y2="33" class="anim-fall-1" style="animation-delay:.2s"/></g></svg>`,
+    neve: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#C5D0E0"/><g fill="#C8E8FF"><text x="11" y="33" font-size="10" class="anim-snow-1" style="transform-origin:14px 30px">❄</text><text x="19" y="33" font-size="10" class="anim-snow-2" style="transform-origin:22px 30px">❄</text><text x="27" y="33" font-size="10" class="anim-snow-3" style="transform-origin:30px 30px">❄</text></g></svg>`,
+    granizo: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#8A9BB5"/><g fill="#A8D8FF"><circle cx="13" cy="29" r="2.5" class="anim-fall-1"/><circle cx="21" cy="29" r="2.5" class="anim-fall-2"/><circle cx="29" cy="29" r="2.5" class="anim-fall-3"/></g></svg>`,
+    trovoada: `<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30 20H14a7 7 0 0 1-.5-14 9 9 0 0 1 17.6 2.2A6 6 0 0 1 30 20z" fill="#5A6A80"/><g stroke="#5B8CFF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="24" x2="10" y2="30" class="anim-fall-1"/><line x1="28" y1="24" x2="26" y2="30" class="anim-fall-3"/></g><path d="M22 21 L17 30 L21 30 L18 38 L26 27 L22 27 Z" fill="#FFE040" class="anim-flicker"/></svg>`,
   };
 
   function setWeatherIcon(code, isDay) {
-    const c = Number(code);
-    const day = isDay === 1;
+    const c = Number(code), day = isDay === 1;
     const container = document.getElementById('weatherIconContainer');
     let icon;
-    if (c === 0)                                  icon = day ? ICONS.sol : ICONS.lua;
-    else if (c === 1 || c === 2)                  icon = day ? ICONS.nuvemSol : ICONS.nuvemLua;
-    else if (c === 3)                             icon = ICONS.nuvem;
-    else if (c === 45 || c === 48)                icon = ICONS.nevoeiro;
-    else if (c >= 51 && c <= 55)                  icon = ICONS.chuvisco;
-    else if (c === 56 || c === 57)                icon = ICONS.granizo;
-    else if (c === 61 || c === 63)                icon = ICONS.chuva;
-    else if (c === 65)                            icon = ICONS.chuvaForte;
-    else if (c === 66 || c === 67)                icon = ICONS.granizo;
-    else if (c >= 71 && c <= 77)                  icon = ICONS.neve;
-    else if (c === 80 || c === 81)                icon = ICONS.chuva;
-    else if (c === 82)                            icon = ICONS.chuvaForte;
-    else if (c === 85 || c === 86)                icon = ICONS.neve;
-    else if (c >= 95 && c <= 99)                  icon = ICONS.trovoada;
-    else                                          icon = day ? ICONS.sol : ICONS.lua;
+    if (c === 0)                      icon = day ? ICONS.sol : ICONS.lua;
+    else if (c === 1 || c === 2)      icon = day ? ICONS.nuvemSol : ICONS.nuvemLua;
+    else if (c === 3)                 icon = ICONS.nuvem;
+    else if (c === 45 || c === 48)    icon = ICONS.nevoeiro;
+    else if (c >= 51 && c <= 55)      icon = ICONS.chuvisco;
+    else if (c === 56 || c === 57)    icon = ICONS.granizo;
+    else if (c === 61 || c === 63)    icon = ICONS.chuva;
+    else if (c === 65)                icon = ICONS.chuvaForte;
+    else if (c === 66 || c === 67)    icon = ICONS.granizo;
+    else if (c >= 71 && c <= 77)      icon = ICONS.neve;
+    else if (c === 80 || c === 81)    icon = ICONS.chuva;
+    else if (c === 82)                icon = ICONS.chuvaForte;
+    else if (c === 85 || c === 86)    icon = ICONS.neve;
+    else if (c >= 95 && c <= 99)      icon = ICONS.trovoada;
+    else                              icon = day ? ICONS.sol : ICONS.lua;
     container.innerHTML = icon;
   }
 
@@ -279,22 +151,17 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  let lastCity = 0, lastWeather = 0;
-  let lastCityLat = null, lastCityLng = null;
-  let cityFetching = false;
-  let weatherFetching = false;
-  let lastGoodCity = null;
-  let watchId = null;
-  let gpsLostTimer = null;
+  /* ---- KM DO DIA ---- */
+  let dailyKm = 0;
+  let lastPos = null;
 
-  function setCity(name) {
-    const el = document.getElementById('cityVal');
-    el.textContent = name;
-    el.classList.remove('scrolling');
-    setTimeout(() => { if (el.scrollWidth > 260) el.classList.add('scrolling'); }, 50);
+  function resetKm() {
+    dailyKm = 0;
+    lastPos = null;
+    document.getElementById('kmVal').textContent = '0 km';
   }
+  window.resetDailyKm = resetKm;
 
-  /* distância em metros entre dois pontos */
   function distM(lat1, lng1, lat2, lng2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -303,36 +170,22 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  async function fetchCity(lat, lng, force) {
-    /* só busca se: forçado, sem cache, passou 60s, ou moveu >300m */
-    const moved = lastCityLat !== null && distM(lat, lng, lastCityLat, lastCityLng) > 300;
-    if (!force && !moved && lastGoodCity && Date.now() - lastCity < 60000) return;
-    if (cityFetching) return;
-    cityFetching = true;
-    lastCity = Date.now();
-    lastCityLat = lat; lastCityLng = lng;
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 5000);
-      const res = await fetch(
-        'https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+
-        '&format=json&zoom=14&addressdetails=1',
-        { signal: ctrl.signal }
-      );
-      clearTimeout(timer);
-      const d = await res.json();
-      const a = d.address || {};
-      /* prioridade: suburb > quarter > town > city > village > county */
-      const name = a.suburb || a.quarter || a.town || a.city || a.village || a.municipality || a.county || '--';
-      lastGoodCity = name;
-      setCity(name);
-    } catch(e) {
-      /* mantém o último nome conhecido em vez de apagar */
-      if (lastGoodCity) setCity(lastGoodCity);
-    } finally {
-      cityFetching = false;
+  function updateKm(lat, lng) {
+    if (lastPos !== null) {
+      const d = distM(lastPos.lat, lastPos.lng, lat, lng);
+      if (d < 500) {
+        dailyKm += d / 1000;
+        document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
+      }
     }
+    lastPos = { lat, lng };
   }
+
+  /* ---- GPS & WEATHER ---- */
+  let lastWeather = 0;
+  let weatherFetching = false;
+  let watchId = null;
+  let gpsLostTimer = null;
 
   async function fetchWeather(lat, lng) {
     if (weatherFetching || Date.now() - lastWeather < 300000) return;
@@ -353,58 +206,38 @@
       const isDay = d.current?.is_day ?? 1;
       document.getElementById('tempVal').textContent = isNaN(temp) ? '--°' : temp + '°';
       setWeatherIcon(code, isDay);
-    } catch(e) {} finally {
-      weatherFetching = false;
-    }
+    } catch(e) {} finally { weatherFetching = false; }
   }
 
   function onPosition(pos) {
-    /* GPS recebido — limpar timer de perda */
     if (gpsLostTimer) { clearTimeout(gpsLostTimer); gpsLostTimer = null; }
-
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    const acc = pos.coords.accuracy; /* metros */
-
-    /* velocidade: ignora leituras com precisão muito má */
+    const acc = pos.coords.accuracy;
     const kmh = (pos.coords.speed != null && pos.coords.speed >= 0 && acc < 50)
       ? Math.round(pos.coords.speed * 3.6) : 0;
     document.getElementById('speedVal').textContent = kmh + ' km/h';
-
-    /* cidade: só consulta se precisão aceitável (<100m) ou ainda sem nome */
-    if (acc < 100 || !lastGoodCity) fetchCity(lat, lng, false);
-
+    if (acc < 30) updateKm(lat, lng);
     fetchWeather(lat, lng);
-
-    /* agendar aviso de GPS perdido após 10s sem update */
     gpsLostTimer = setTimeout(() => {
       document.getElementById('speedVal').textContent = '-- km/h';
     }, 10000);
   }
 
-  function onError(err) {
-    if (!lastGoodCity) setCity('Sem GPS');
-    /* tenta reconectar após 3s */
-    setTimeout(startWatch, 3000);
-  }
+  function onError() { setTimeout(startWatch, 3000); }
 
   function startWatch() {
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
     watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true,
-      maximumAge: 1000,   /* aceita cache de 1s máximo */
-      timeout: 10000
+      enableHighAccuracy: true, maximumAge: 1000, timeout: 10000
     });
   }
 
   if ('geolocation' in navigator) {
-    /* primeiro fix rápido com getCurrentPosition (mais rápido que watchPosition no início) */
     navigator.geolocation.getCurrentPosition(
       (pos) => { onPosition(pos); startWatch(); },
       () => { startWatch(); },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }
     );
-  } else {
-    setCity('GPS indisponível');
   }
 </script>
 </body>
