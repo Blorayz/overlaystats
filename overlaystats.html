@@ -108,7 +108,7 @@
 <script>
   // =====================================================
   // CONFIGURAÇÃO — altera apenas esta linha:
-  const TWITCH_CHANNEL = 'blorayz'; // ex: 'joaostreamer'
+  const TWITCH_CHANNEL = 'SEU_CANAL_AQUI'; // ex: 'joaostreamer'
   // =====================================================
 
   const ICONS = {
@@ -265,37 +265,71 @@
     };
 
     ws.onmessage = (event) => {
-      const raw = event.data;
+      // O Twitch pode enviar várias linhas numa só mensagem
+      const lines = event.data.split('\r\n');
 
-      // Responder a PING do servidor para não ser desligado
-      if (raw.startsWith('PING')) {
-        ws.send('PONG :tmi.twitch.tv');
-        return;
-      }
+      for (const raw of lines) {
+        if (!raw) continue;
 
-      // Extrair mensagem PRIVMSG
-      const match = raw.match(/^(?:@[^ ]+ )?:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$/);
-      if (!match) return;
-
-      const user = match[1].toLowerCase();
-      const msg  = match[2].trim();
-      const lower = msg.toLowerCase();
-
-      // ---- !resetkm ----
-      if (lower === '!resetkm') {
-        resetKm();
-        return;
-      }
-
-      // ---- !km <valor> ----
-      // Aceita: !km 42   !km 42.5   !km 42,5
-      const kmMatch = lower.match(/^!km\s+([\d]+(?:[.,]\d+)?)$/);
-      if (kmMatch) {
-        const val = parseFloat(kmMatch[1].replace(',', '.'));
-        if (!isNaN(val) && val >= 0) {
-          setKm(val);
+        // Responder a PING do servidor para não ser desligado
+        if (raw.startsWith('PING')) {
+          ws.send('PONG :tmi.twitch.tv');
+          continue;
         }
-        return;
+
+        // Separar bloco de tags IRCv3 do resto da mensagem
+        // Formato com tags:    @tag1=v1;tag2=v2 :user!user@... PRIVMSG #canal :mensagem
+        // Formato sem tags:    :user!user@... PRIVMSG #canal :mensagem
+        let tagStr = '';
+        let rest = raw;
+
+        if (raw.startsWith('@')) {
+          const spaceIdx = raw.indexOf(' ');
+          tagStr = raw.slice(1, spaceIdx);   // tudo entre @ e o primeiro espaço
+          rest   = raw.slice(spaceIdx + 1);  // o resto
+        }
+
+        // Só nos interessa PRIVMSG
+        if (!rest.includes('PRIVMSG')) continue;
+
+        const msgMatch = rest.match(/:(\w+)!\w+@[\w.]+ PRIVMSG #\w+ :(.+)/);
+        if (!msgMatch) continue;
+
+        const user  = msgMatch[1].toLowerCase();
+        const msg   = msgMatch[2].trim();
+        const lower = msg.toLowerCase();
+
+        // ----- Verificação mod / VIP / broadcaster -----
+        // As tags IRCv3 têm: badges=broadcaster/1,... ou mod=1 ou vip=1
+        const tags = {};
+        tagStr.split(';').forEach(t => {
+          const [k, v] = t.split('=');
+          if (k) tags[k] = v || '';
+        });
+
+        const isMod         = tags['mod'] === '1';
+        const isVip         = tags['vip'] === '1';
+        const isBroadcaster = (tags['badges'] || '').includes('broadcaster');
+        const hasPermission = isMod || isVip || isBroadcaster;
+
+        if (!hasPermission) continue; // ignora quem não tem permissão
+
+        // ---- !resetkm ----
+        if (lower === '!resetkm') {
+          resetKm();
+          continue;
+        }
+
+        // ---- !km <valor> ----
+        // Aceita: !km 42   !km 42.5   !km 42,5
+        const kmMatch = lower.match(/^!km\s+([\d]+(?:[.,]\d+)?)$/);
+        if (kmMatch) {
+          const val = parseFloat(kmMatch[1].replace(',', '.'));
+          if (!isNaN(val) && val >= 0) {
+            setKm(val);
+          }
+          continue;
+        }
       }
     };
 
