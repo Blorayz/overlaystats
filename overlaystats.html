@@ -242,91 +242,110 @@
   }
 
 
-  /* ---- COMANDOS DE CHAT ---- */
-  // Suporte para comandos via StreamElements / OBS Browser Source
-  // Formato esperado: !km <valor>  ou  !resetkm
-  // Restrito a moderadores, broadcaster e VIPs
+  /* ============================================================
+     TWITCH IRC WEBSOCKET — COMANDOS DE CHAT
+     ============================================================
+     CONFIGURA AQUI:
+     - TWITCH_CHANNEL: nome do teu canal (minúsculas, sem #)
+     - TWITCH_OAUTH:   token de https://twitchapps.com/tmi/
+     - TWITCH_NICK:    nome da conta (pode ser o teu)
+  ============================================================ */
+  const TWITCH_CHANNEL = 'blorayz';
+  const TWITCH_OAUTH   = 'oauth:9camhmqhjxliupb18susjfnkoqnr44';
+  const TWITCH_NICK    = 'blorayz';
 
-  function isAuthorizedChatUser(tags) {
-    if (!tags) return false;
-    return tags.mod === '1' || tags.badges?.broadcaster || tags.badges?.vip || tags.badges?.moderator;
-  }
+  (function initTwitchChat() {
+    if (TWITCH_CHANNEL === 'AGORA_TU_CANAL') {
+      console.warn('[Twitch IRC] Canal não configurado. Edita TWITCH_CHANNEL no topo do script.');
+      return;
+    }
 
-  // Listener para mensagens do chat (via postMessage do StreamElements)
-  window.addEventListener('message', function(event) {
-    try {
-      const data = event.data;
-      if (!data || typeof data !== 'object') return;
+    const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    let reconnectTimer = null;
+    let pingInterval = null;
 
-      // StreamElements formato
-      const msg = data.data || data;
-      const text = (msg.message || msg.text || '').trim().toLowerCase();
-      const tags = msg.tags || msg.user || {};
+    function connect() {
+      ws.send('PASS ' + TWITCH_OAUTH);
+      ws.send('NICK ' + TWITCH_NICK);
+      ws.send('JOIN #' + TWITCH_CHANNEL.toLowerCase());
+      ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+    }
 
-      // Verificar autorização
-      const isMod = tags.mod === '1' || tags.mod === true;
-      const isBroadcaster = tags.badges?.broadcaster || tags.badges?.broadcaster === '1' || tags.username === tags['room-id'];
-      const isVip = tags.badges?.vip || tags.badges?.vip === '1';
+    function reconnect() {
+      if (reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        initTwitchChat();
+      }, 5000);
+    }
+
+    ws.addEventListener('open', () => {
+      console.log('[Twitch IRC] Ligado ao servidor');
+      connect();
+      pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) ws.send('PING');
+      }, 30000);
+    });
+
+    ws.addEventListener('message', (e) => {
+      const raw = e.data;
+
+      // Responder a PING do servidor
+      if (raw.startsWith('PING')) {
+        ws.send('PONG :tmi.twitch.tv');
+        return;
+      }
+
+      // Ignorar mensagens do sistema
+      if (!raw.includes('PRIVMSG')) return;
+
+      // Parse da mensagem IRC com tags
+      // Formato: @tags :nick!nick@nick.tmi.twitch.tv PRIVMSG #canal :mensagem
+      const tagMatch = raw.match(/^@([^ ]+) /);
+      const tags = {};
+      if (tagMatch) {
+        tagMatch[1].split(';').forEach(pair => {
+          const [k, v] = pair.split('=');
+          tags[k] = v === undefined ? '' : v;
+        });
+      }
+
+      const msgMatch = raw.match(/PRIVMSG #[^ ]+ :(.+)$/);
+      if (!msgMatch) return;
+      const text = msgMatch[1].trim().toLowerCase();
+
+      // Verificar autorização (mod, broadcaster, vip)
+      const isMod = tags.mod === '1';
+      const isBroadcaster = tags.badges && tags.badges.includes('broadcaster');
+      const isVip = tags.badges && tags.badges.includes('vip');
       const isAuthorized = isMod || isBroadcaster || isVip;
 
       if (!isAuthorized) return;
 
-      // Comando !km <valor>
+      // Comando !km <valor> — define o valor exato (não adiciona)
       if (text.startsWith('!km ')) {
         const parts = text.split(' ');
         if (parts.length >= 2) {
           const val = parseFloat(parts[1].replace(',', '.'));
           if (!isNaN(val) && val >= 0) {
-            dailyKm += val;
+            dailyKm = val;  // DEFINE o valor, não adiciona
             document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
-            console.log('[Chat] KM adicionado: +' + val + ' km | Total: ' + dailyKm.toFixed(1) + ' km');
+            console.log('[Chat] KM definido para ' + val + ' por ' + (tags['display-name'] || 'admin'));
           }
         }
       }
-
-      // Comando !resetkm
-      else if (text === '!resetkm') {
-        resetKm();
-        console.log('[Chat] KM resetado via comando');
-      }
-
-    } catch(e) {}
-  });
-
-  // Listener alternativo para StreamElements custom fields (se disponível)
-  if (window.addEventListener) {
-    // Tentar integração com StreamElements custom code
-    document.addEventListener('onEventReceived', function(obj) {
-      try {
-        const event = obj.detail;
-        if (event.listener === 'message') {
-          const data = event.event;
-          const text = (data.text || data.message || '').trim().toLowerCase();
-          const tags = data.tags || {};
-
-          const isMod = tags.mod === '1' || tags.mod === true;
-          const isBroadcaster = tags.badges?.broadcaster || tags.badges?.broadcaster === '1';
-          const isVip = tags.badges?.vip || tags.badges?.vip === '1';
-          const isAuthorized = isMod || isBroadcaster || isVip;
-
-          if (!isAuthorized) return;
-
-          if (text.startsWith('!km ')) {
-            const parts = text.split(' ');
-            if (parts.length >= 2) {
-              const val = parseFloat(parts[1].replace(',', '.'));
-              if (!isNaN(val) && val >= 0) {
-                dailyKm += val;
-                document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
-              }
-            }
-          } else if (text === '!resetkm') {
-            resetKm();
-          }
-        }
-      } catch(e) {}
     });
-  }
+
+    ws.addEventListener('error', (err) => {
+      console.error('[Twitch IRC] Erro:', err);
+    });
+
+    ws.addEventListener('close', () => {
+      console.log('[Twitch IRC] Desligado. A reconectar...');
+      if (pingInterval) { clearInterval(pingInterval); pingInterval = null; }
+      reconnect();
+    });
+  })();
 
 </script>
 </body>
