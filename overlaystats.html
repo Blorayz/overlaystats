@@ -39,6 +39,7 @@
     .anim-snow-2  { animation: snowfall 1.8s ease-in .5s infinite; }
     .anim-snow-3  { animation: snowfall 1.8s ease-in 1s infinite; }
   </style>
+<base target="_blank">
 </head>
 <body>
 <div class="card">
@@ -239,6 +240,94 @@
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }
     );
   }
+
+
+  /* ---- COMANDOS DE CHAT ---- */
+  // Suporte para comandos via StreamElements / OBS Browser Source
+  // Formato esperado: !km <valor>  ou  !resetkm
+  // Restrito a moderadores, broadcaster e VIPs
+
+  function isAuthorizedChatUser(tags) {
+    if (!tags) return false;
+    return tags.mod === '1' || tags.badges?.broadcaster || tags.badges?.vip || tags.badges?.moderator;
+  }
+
+  // Listener para mensagens do chat (via postMessage do StreamElements)
+  window.addEventListener('message', function(event) {
+    try {
+      const data = event.data;
+      if (!data || typeof data !== 'object') return;
+
+      // StreamElements formato
+      const msg = data.data || data;
+      const text = (msg.message || msg.text || '').trim().toLowerCase();
+      const tags = msg.tags || msg.user || {};
+
+      // Verificar autorização
+      const isMod = tags.mod === '1' || tags.mod === true;
+      const isBroadcaster = tags.badges?.broadcaster || tags.badges?.broadcaster === '1' || tags.username === tags['room-id'];
+      const isVip = tags.badges?.vip || tags.badges?.vip === '1';
+      const isAuthorized = isMod || isBroadcaster || isVip;
+
+      if (!isAuthorized) return;
+
+      // Comando !km <valor>
+      if (text.startsWith('!km ')) {
+        const parts = text.split(' ');
+        if (parts.length >= 2) {
+          const val = parseFloat(parts[1].replace(',', '.'));
+          if (!isNaN(val) && val >= 0) {
+            dailyKm += val;
+            document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
+            console.log('[Chat] KM adicionado: +' + val + ' km | Total: ' + dailyKm.toFixed(1) + ' km');
+          }
+        }
+      }
+
+      // Comando !resetkm
+      else if (text === '!resetkm') {
+        resetKm();
+        console.log('[Chat] KM resetado via comando');
+      }
+
+    } catch(e) {}
+  });
+
+  // Listener alternativo para StreamElements custom fields (se disponível)
+  if (window.addEventListener) {
+    // Tentar integração com StreamElements custom code
+    document.addEventListener('onEventReceived', function(obj) {
+      try {
+        const event = obj.detail;
+        if (event.listener === 'message') {
+          const data = event.event;
+          const text = (data.text || data.message || '').trim().toLowerCase();
+          const tags = data.tags || {};
+
+          const isMod = tags.mod === '1' || tags.mod === true;
+          const isBroadcaster = tags.badges?.broadcaster || tags.badges?.broadcaster === '1';
+          const isVip = tags.badges?.vip || tags.badges?.vip === '1';
+          const isAuthorized = isMod || isBroadcaster || isVip;
+
+          if (!isAuthorized) return;
+
+          if (text.startsWith('!km ')) {
+            const parts = text.split(' ');
+            if (parts.length >= 2) {
+              const val = parseFloat(parts[1].replace(',', '.'));
+              if (!isNaN(val) && val >= 0) {
+                dailyKm += val;
+                document.getElementById('kmVal').textContent = dailyKm.toFixed(1) + ' km';
+              }
+            }
+          } else if (text === '!resetkm') {
+            resetKm();
+          }
+        }
+      } catch(e) {}
+    });
+  }
+
 </script>
 </body>
 </html>
